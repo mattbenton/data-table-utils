@@ -1,11 +1,12 @@
 {
   "name": "@mattbenton/dataframe-utils",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./dist/index.js"
+      "types": "./src/esm/index.d.ts",
+      "default": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     }
   },
   "license": "MIT",
@@ -13,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "dev": "tsc --watch",
-    "build": "tsc --project tsconfig.prod.json"
+    "build": "tsc --build tsconfig.prod-esm.json tsconfig.prod-cjs.json"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.1",
