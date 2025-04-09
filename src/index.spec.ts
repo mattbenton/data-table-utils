@@ -24,6 +24,19 @@ test('Matt', () => {
     { id: 'O3', session_key: 'S4', net: 50 }
   ]);
 
+  const sessionsWithCountries = join(
+    sessions,
+    countries,
+    (s, c) => s.sessions__country_code === c.countries__code
+  );
+  const sessionsOrdersCountries = joinLeft(
+    sessionsWithCountries,
+    orders,
+    (s, o) => s.sessions__key === o.orders__session_key
+  );
+
+  // sessionsOrdersCountries[0].
+
   const joined = compose(sessions)
     .pipe((from) =>
       join(
@@ -43,8 +56,9 @@ test('Matt', () => {
 
   console.log('joined', joined);
 
-  const filtered = joined.filter((row) => (row.orders__net ?? 0) > 300);
-  console.log('filtered', filtered);
+  const filtered = joined;
+  // const filtered = joined.filter((row) => (row.orders__net ?? 0) > 300);
+  // console.log('filtered', filtered);
 
   const result = summarize({
     rows: filtered,
@@ -68,6 +82,12 @@ test('Matt', () => {
         alias: 'total_page_views',
         aggregate: sum,
         primaryKey: (row) => row.sessions__key
+      },
+      {
+        select: (row) => row.sessions__page_views,
+        alias: 'bad_total_page_views',
+        aggregate: sum
+        // primaryKey: (row) => row.sessions__key
       },
       {
         select: (row) => row.sessions__page_views,
