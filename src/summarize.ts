@@ -1,7 +1,7 @@
 import { rollup } from 'd3-array';
 import type { Row } from './types';
 
-export type Operation<
+export type SummarizeOperation<
   TRow = any,
   TAlias extends string = string,
   TResult = any
@@ -12,17 +12,16 @@ export type Operation<
   aggregate?: (values: TResult[]) => any;
 };
 
-type OperationReturnType<T extends Operation> = T['aggregate'] extends (
-  values: any[]
-) => infer R
-  ? R // Return type of aggregate if it exists
-  : ReturnType<T['select']>;
+type OperationReturnType<T extends SummarizeOperation> =
+  T['aggregate'] extends (values: any[]) => infer R
+    ? R // Return type of aggregate if it exists
+    : ReturnType<T['select']>;
 
 export function summarize<
   TRow extends Row,
   // "const" Tell TypeScript to extract as much type information as possible
   // when the input is given as a literal expression
-  const TOperations extends Operation<TRow, string, any>[],
+  const TOperations extends SummarizeOperation<TRow, string, any>[],
   // A union of each operation type
   TOperation extends TOperations[number],
   // A union of each alias used in the operations
@@ -82,8 +81,14 @@ export function summarize<
     });
 
   const grouped = rollup(opts.rows, reducer, ...groupAccessors);
+  if (!groupAccessors.length) {
+    // If there are no keys to group by `rollup` will return a single summary row
+    // as a plain object instead of an `InternMap` object.
+    return [grouped] as TResultRow[];
+  }
+
+  // Otherwise `rollup` will return an `InternMap` which we need to flatten.
   return flattenMap(grouped) as TResultRow[];
-  // return flattenMap(grouped);
 }
 
 // Convert the potentially nested Map structure into an array of objects
